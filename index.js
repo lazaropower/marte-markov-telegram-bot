@@ -107,13 +107,13 @@ const sendMarkovMessageAsAudio = (chatId, msgId) => {
     generateMarkovMessage(chatId)
     .then(text => {
         var gtts = new gTTS(text, 'es');
-        const path = `audios/MarTe ${chatId}-${msgId}.mp3`;
+        const path = `audios/Manolo ${chatId}-${msgId}.mp3`;
         gtts.save(path, function (err, result){
             if(err) {
                 bot.sendMessage(chatId, 'Lo siento, algo ha ido mal. Por favor, prueba de nuevo con /audio');
                 return;
             }
-            bot.sendAudio(chatId, path, {title: 'MarTe'})
+            bot.sendAudio(chatId, path, {title: 'Manolo'})
                 .catch(err => {
                     bot.sendMessage(chatId, 'Lo siento, algo ha ido mal. Por favor, prueba de nuevo con /audio');
                 })
