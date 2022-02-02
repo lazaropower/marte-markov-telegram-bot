@@ -8,60 +8,56 @@ const fs = require('fs');
 
 require('dotenv').config();
 
-console.log(`Hi! I'm MarTe (Markov Telegram) - v${pjson.version}`);
+console.log(`Yeeeeeha! Soy Manolo Callejas - v${pjson.version}`);
 
 const bot = new TelegramBot(process.env.TOKEN, {polling: true});
 
 const commands = [
     {
-        command: '/talk',
-        description: 'I talk'
+        command: '/habla',
+        description: 'Mando un mensaje'
     },
     {
         command: '/audio',
-        description: 'I send you a voice message'
+        description: 'Mando un audio'
     },
     {
-        command: '/commands',
-        description: 'Get commands list'
-    },
-    {
-        command: '/contribute',
-        description: 'Contribute to this project with a small contribution'
+        command: '/comandos',
+        description: 'Lista de comandos'
     },
     {
         command: '/stats',
-        description: 'I send you the number of learnt messages'
+        description: 'Mando el número de mensajes aprendidos'
     },
     {
-        command: '/help',
-        description: 'I give you basic info about me'
+        command: '/about',
+        description: 'Te doy información básica sobre mi'
     },{
-        command: '/delete',
-        description: 'Forget all the messages learnt from this group'
+        command: '/eliminar',
+        description: 'Olvidaré todos los mensajes aprendidos en el grupo'
     },{
-        command: '/fixme',
-        description: 'Use this command if I stop sending automatic messages'
+        command: '/arreglarme',
+        description: 'Usa este comando si dejo de mandar mensajes automáticos'
     },{
-        command: '/setfrequency',
-        description: 'Set the talking frequency (default: once every 10 learnt messages)'
+        command: '/frecuencia',
+        description: 'Establezco la frecuencia con la que hablo (por defecto cada 10 mensajes)'
     },{
-        command: '/sendsticker',
-        description: 'I send a sticker'
+        command: '/sticker',
+        description: 'Mando un sticker'
     },{
-        command: '/speech',
-        description: 'Generate speech'
+        command: '/discurso',
+        description: 'Genero un discurso'
     },{
-        command: '/quote',
-        description: 'Generate a quote'
+        command: '/cita',
+        description: 'Genero una cita'
     }
 ];
 
 bot.setMyCommands(commands);
 
-console.log("Okay, let's see what I've learnt...")
+console.log("Vale, veamos lo que he aprendido...")
 
-mongoose.connect(`mongodb://${process.env.DB_HOST}:27017/martebot`, {useNewUrlParser: true, useUnifiedTopology: true})
+mongoose.connect(`mongodb://${process.env.DB_HOST}:27017/manolobot`, {useNewUrlParser: true, useUnifiedTopology: true})
 .then(() => console.log("Interesting..."))
 .catch(() => console.log("Whoops... Something went wrong..."));
 
@@ -103,7 +99,7 @@ const sendMarkovMessage = (chatId) => {
         bot.sendMessage(chatId, text);
     })
     .catch(e => {
-        bot.sendMessage(chatId, 'Sorry, I need to learn more');
+        bot.sendMessage(chatId, 'Lo siento, necesito aprender más');
     });
 }
 
@@ -114,12 +110,12 @@ const sendMarkovMessageAsAudio = (chatId, msgId) => {
         const path = `audios/MarTe ${chatId}-${msgId}.mp3`;
         gtts.save(path, function (err, result){
             if(err) {
-                bot.sendMessage(chatId, 'Sorry, something went wrong. Please, try again the command /audio');
+                bot.sendMessage(chatId, 'Lo siento, algo ha ido mal. Por favor, prueba de nuevo con /audio');
                 return;
             }
             bot.sendAudio(chatId, path, {title: 'MarTe'})
                 .catch(err => {
-                    bot.sendMessage(chatId, 'Sorry, something went wrong. Please, try again the command /audio');
+                    bot.sendMessage(chatId, 'Lo siento, algo ha ido mal. Por favor, prueba de nuevo con /audio');
                 })
                 .finally(() => {
                     fs.unlink(path, () => {
@@ -129,7 +125,7 @@ const sendMarkovMessageAsAudio = (chatId, msgId) => {
         });
     })
     .catch(e => {
-        bot.sendMessage(chatId, 'Sorry, I need to learn more');
+        bot.sendMessage(chatId, 'Lo siento, necesito aprender más');
     });
 }
 
@@ -152,7 +148,7 @@ const generateSpeech = async (chatId, length) => {
         }
         return speech;
     } catch(e) {
-        return speech.length > 0 ? speech : 'Sorry, I need to learn more'; 
+        return speech.length > 0 ? speech : 'Lo siento, necesito aprender más'; 
     }
 }
 
@@ -166,7 +162,7 @@ bot.on('message', (msg) => {
                 const config = await Config.findOne({chatId: message.chatId})
                 const messages = await Message.find({chatId: message.chatId});
                 if (messages.length === 666){
-                    bot.sendMessage(message.chatId, 'I\'ve learnt 666 messages 😈')
+                    bot.sendMessage(message.chatId, 'He aprendido 666 mensajes 😈')
                 } else {
                     if (messages.length % (config ? config.frequency : 10) === 0) {
                         const rand = Math.random();
@@ -185,7 +181,7 @@ bot.on('message', (msg) => {
     }
 })
 
-bot.onText(/\/talk/, (msg, match) => {
+bot.onText(/\/habla/, (msg, match) => {
     sendMarkovMessage(msg.chat.id);
 });
 
@@ -201,11 +197,11 @@ bot.onText(/\/speech/, async (msg, match) => {
 
 bot.onText(/\/stats/, async (msg, match) => {
     const messages = await Message.find({chatId: msg.chat.id});
-    bot.sendMessage(msg.chat.id, `I've learnt ${messages.length} messages`);
+    bot.sendMessage(msg.chat.id, `He aprendido ${messages.length} mensajes`);
 });
 
-bot.onText(/\/delete/, async (msg, match) => {
-    bot.sendMessage(msg.chat.id, 'Are you sure you want to delete all the learnt messages?', {
+bot.onText(/\/eliminar/, async (msg, match) => {
+    bot.sendMessage(msg.chat.id, '¿Estás seguro de que deseas eliminar todos los mensajes?', {
         reply_markup: {
             keyboard: [["Yes"], ["No"]],
             remove_keyboard: true
@@ -215,7 +211,7 @@ bot.onText(/\/delete/, async (msg, match) => {
 
 const isRemoveOption = (msg) => {
     return msg.reply_to_message && msg.reply_to_message.from.username === process.env.TELEGRAM_BOT_USER 
-    && msg.reply_to_message.text === 'Are you sure you want to delete all the learnt messages?';
+    && msg.reply_to_message.text === '¿Estás seguro de que quieres eliminar todos los mensajes aprendidos?';
 }
 
 bot.onText(/^Yes$|^No$/, async (msg, match) => {
@@ -224,14 +220,14 @@ bot.onText(/^Yes$|^No$/, async (msg, match) => {
             let deleted = await Message.deleteMany({chatId: msg.chat.id});
             deleted = deleted && await Sticker.deleteMany({chatId: msg.chat.id});
             bot.sendMessage(msg.chat.id, 
-                deleted ? 'Messages successfully deleted' : 'Something wnet wrong, try again later', {
+                deleted ? 'Mensajes eliminados correctamente' : 'Algo fue mal, inténtalo de nuevo más tarde', {
                 reply_markup: {
                     remove_keyboard: true    
                 }
             });
         }
         if (msg.text === 'No'){
-            bot.sendMessage(msg.chat.id, 'Great! It took me a while to learn all these messages...', {
+            bot.sendMessage(msg.chat.id, 'Bien! Me ha costado un cojón aprender tantos mensajes...', {
                 reply_markup: {
                     remove_keyboard: true    
                 }
@@ -240,14 +236,8 @@ bot.onText(/^Yes$|^No$/, async (msg, match) => {
     }
 })
 
-bot.onText(/\/help/, async (msg, match) => {
-    bot.sendMessage(msg.chat.id, `I'm MarTe, I was created by <a href="https://twitter.com/inixiodev">@inixiodev</a>.`
-        +` I'm pretty young (I'm ${pjson.version} versions old).` 
-        + ` I live in a Raspb...\n\nOh, okay... You're worried about your privacy, right?`
-        + ` I store messages in a database with no information about the author. Your messages are safely stored.\n\n`
-        + `You can delete all the messages stored from this group with the /delete command\n\n`
-        + `You can check my source code <a href="https://github.com/inixioamillano/marte-markov-telegram-bot">here</a>`
-        + `\n\nSupport this project buying me a coffe at <a href="https://ko-fi.com/inixiodev/">Ko-Fi</a>`,
+bot.onText(/\/about/, async (msg, match) => {
+    bot.sendMessage(msg.chat.id, `Yeeeha, soy Manolo Callejas, tu camarero de confianza.`,
     {
         parse_mode: 'HTML'
     });
@@ -262,34 +252,34 @@ bot.onText(new RegExp(`@${process.env.TELEGRAM_BOT_USER}`, 'g'), async (msg, mat
             });
         })
         .catch(e => {
-            bot.sendMessage(msg.chat.id, 'Sorry, I need to learn more', {
+            bot.sendMessage(msg.chat.id, 'Lo siento, necesito aprender más', {
                 reply_to_message_id: msg.message_id
             });
         })
     }
 });
 
-bot.onText(/\/fixme/, (msg, match) => {
-    bot.sendMessage(msg.chat.id, 'Delete me from this group and add me again.'
-        + ' I\'ll remember every message I learnt');
+bot.onText(/\/arreglarme/, (msg, match) => {
+    bot.sendMessage(msg.chat.id, 'Aféitame del grupo y añádeme otra vez..'
+        + ' Recordaré todos los mensajes que he aprendido');
 });
 
-bot.onText(/\/setfrequency/, async (msg, match) => {
+bot.onText(/\/frecuencia/, async (msg, match) => {
     const param = match.input.split(/\s+/)[1];
     const config = await Config.findOne({chatId: msg.chat.id});
     if (!param){
-        bot.sendMessage(msg.chat.id, `Frequency is set to ${config ? config.frequency : 10}`);
+        bot.sendMessage(msg.chat.id, `La frecuencia está establecida a ${config ? config.frequency : 10}`);
     } else {
         if (!isNaN(param) && param > 0){
             Config.update({chatId: msg.chat.id}, {$set: {frequency: param}}, {upsert: true}, (err, config) => {
                 if (!err) {
-                    bot.sendMessage(msg.chat.id, `Frequency set to ${param}`);
+                    bot.sendMessage(msg.chat.id, `Frecuencia establecida a ${param}`);
                 } else {
-                    bot.sendMessage(msg.chat.id, 'Please, try again later');
+                    bot.sendMessage(msg.chat.id, 'Por favor, inténtalo de nuevo');
                 }
             })
         } else {
-            bot.sendMessage(msg.chat.id, `Invalid param. Send /frequency <frequency in messages>`);
+            bot.sendMessage(msg.chat.id, `Parámetro inválido. Envía /frecuencia <frecuencia de mensajes>`);
         }
         
     }
@@ -299,7 +289,7 @@ bot.on('sticker', (msg) => {
     Sticker.update({chatId: msg.chat.id, file_id: msg.sticker.file_id},
         {$inc: {count: 1}},
         {upsert: true}, (err, st) => {
-            console.log(err ? 'Error learning sticker' : 'Sticker learnt');
+            console.log(err ? 'Error aprendiendo sticker' : 'Sticker aprendido');
         });
 })
 
@@ -308,19 +298,19 @@ bot.on('dice', async (msg) => {
     bot.sendMessage(msg.chat.id, speech);
 })
 
-bot.onText(/\/sendsticker/, async (msg) => {
+bot.onText(/\/sticker/, async (msg) => {
     const sent = await sendSticker(msg.chat.id)
     if (!sent) {
-        bot.sendMessage(msg.chat.id, 'Sorry, I need to learn stickers first. Please, send me a sticker')
+        bot.sendMessage(msg.chat.id, 'Lo siento, primero necesito aprender stickers. Por favor, envíame uno')
     }
 })
 
-bot.onText(/^\/quote/, async (msg, match) => {
+bot.onText(/^\/cita/, async (msg, match) => {
     let author = match.input.replace(/^\/quote/, '');
     author = author.replace(`@${process.env.TELEGRAM_BOT_USER}`, '');
     if (!author){
-        bot.sendMessage(msg.chat.id, 'Please, write /quote <author> to generate a quote\n\n'
-            + 'Examples:\n\n/quote Obi-Wan Kenobi\n\n/quote Albert Einstein\n\n/quote @<user in this group>');
+        bot.sendMessage(msg.chat.id, 'Por favor, escribe /cita <autor> para generar una cita\n\n'
+            + 'Por ejemplo:\n\n/cita Obi-Wan Kenobi\n\n/cita Albert Einstein\n\n/cita @<usuario en este grupo>');
     } else {
         author = author.replace(/\s+/, '');    
         const message = await generateMarkovMessage(msg.chat.id);
@@ -328,20 +318,13 @@ bot.onText(/^\/quote/, async (msg, match) => {
     }
 })
 
-bot.onText(/\/commands/, (msg, match) => {
-    let text = `Available commands (v${pjson.version})\n\n`;
+bot.onText(/\/comandos/, (msg, match) => {
+    let text = `Comandos disponibles (v${pjson.version})\n\n`;
     commands.forEach(c => {
         text = text + `${c.command} - ${c.description}\n\n`
     })
-    text = text + 'Try sending me the dice emoji. I\'ll send you a random speech depending on the result of the dice rolled';
+    text = text + 'Prueba a enviarme el icono del dado. Te enviaré un discurso random dependiendo del resultado que salga.';
     bot.sendMessage(msg.chat.id, text);
-})
-
-bot.onText(/\/contribute/, (msg, match) => {
-    bot.sendInvoice(msg.chat.id, 'Support MarTe', 'Help to keep this project alive with a small contribution', 'MarTe', process.env.PAYMENT_TOKEN, null, 'EUR', [{
-        label: 'MarTe | Contribution',
-        amount: 100
-    }])
 })
 
 bot.on('polling_error', (e) => console.log(e))
