@@ -57,7 +57,7 @@ bot.setMyCommands(commands);
 
 console.log("Vale, veamos lo que he aprendido...")
 
-mongoose.connect(`mongodb://${process.env.DB_HOST}:27017/manolobot`, {useNewUrlParser: true, useUnifiedTopology: true})
+mongoose.connect(`mongodb+srv://${process.env.DB_HOST}/manolobot`, {useNewUrlParser: true, useUnifiedTopology: true})
 .then(() => console.log("Interesting..."))
 .catch(() => console.log("Whoops... Something went wrong..."));
 
