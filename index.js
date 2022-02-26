@@ -50,6 +50,9 @@ const commands = [
     },{
         command: '/cita',
         description: 'Genero una cita'
+    },{
+        command: '/aprender',
+        description: 'Aprendo un archivo .txt'
     }
 ];
 
@@ -317,6 +320,97 @@ bot.onText(/^\/cita/, async (msg, match) => {
         bot.sendMessage(msg.chat.id, `"${message}"\n\n-${author}`)
     }
 })
+
+bot.onText(/^\/aprender/, async (msg, match) => {
+    const chatId = msg.chat.id;
+
+    if (!msg.reply_to_message) {
+        bot.sendMessage(chatId, 'Debes citar un archivo .txt o enviarme uno.');
+        return;
+    }
+
+    const document = msg.reply_to_message.document;
+
+    if (document) {
+        if (!isTxtFile(document)) {
+            bot.sendMessage(msg.chat.id, 'Lo siento, el fichero tiene que estar en formato .txt.');
+            return;
+        }
+        askToLearnMessage(msg.reply_to_message);
+    }
+})
+
+bot.on('document', async (msg) => {
+    if (!isTxtFile(msg.document)) {
+        bot.sendMessage(msg.chat.id, 'Lo siento, el fichero tiene que estar en formato .txt.');
+        return;
+    }
+    askToLearnMessage(msg);
+});
+
+bot.on('callback_query', (query) => {
+    console.log(query);
+    const chatId = query.message.chat.id;
+    switch (query.data) {
+        case 'data1':
+            bot.sendMessage(chatId, 'Perfecto, aprendiendo...');
+            learnText(chatId, query.message.reply_to_message.document)
+            break;
+        case 'data2':
+            bot.sendMessage(chatId, 'Vale, quizá la próxima vez.');
+            break;
+        default:
+            break;
+    }
+    // Remove inline keyboard
+    bot.deleteMessage(chatId, query.message.message_id);
+});
+
+const learnText = (chatId, document) => {
+    const stream = bot.getFileStream(document.file_id);
+    stream.on('data', (data) => {
+        const chunk = data.toString();
+        const result = chunk.match(/[^.?!]+[.!?]+[\])'"`’”]*/g);
+        result.forEach(element => {
+            Message.create({
+                text: element.replace(new RegExp(`@${process.env.TELEGRAM_BOT_USER}`, 'g'), ''),
+                chatId: chatId
+            });
+        });
+    });
+    bot.sendMessage(chatId, '¡Texto aprendido!');
+}
+
+const isTxtFile = (document) => {
+    const extension = document.file_name.split('.').pop();
+    if (extension !== 'txt')
+        return false;
+    return true;
+}
+
+const askToLearnMessage = (msg) => {
+    const options = {
+        'reply_to_message_id': msg.message_id,
+        'reply_markup': {
+            'inline_keyboard': [
+                [
+                    {
+                        text: 'Yes',
+                        callback_data: 'data1'
+                    }
+                ],
+                [
+                    {
+                        text: 'No',
+                        callback_data: 'data2'
+                    }
+                ],
+            ]
+        }
+    }
+
+    bot.sendMessage(msg.chat.id, 'Should I learn this text?', options);
+}
 
 bot.onText(/\/comandos/, (msg, match) => {
     let text = `Comandos disponibles (v${pjson.version})\n\n`;
